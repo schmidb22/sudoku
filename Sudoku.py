@@ -3,8 +3,7 @@ import time
 import random
 import os
 import sys
-
-
+import numpy as np
 
 def create_matrix():
     list1 = [0,0,0,0,0,0,0,0,0]
@@ -38,9 +37,10 @@ def print_matrix(matrix):
         line.draw(win)
     for i in range(0,9):
         for j in range(0,9):
-            label = Text(Point(30+60*i,30+60*j),str(matrix[i][j]))
-            label.setSize(20)
-            label.draw(win)
+            if matrix[i][j]!=0:
+                label = Text(Point(30+60*i,30+60*j),str(matrix[i][j]))
+                label.setSize(20)
+                label.draw(win)
 
 def add_square_initial(matrix,a,b):
     square = [1,2,3,4,5,6,7,8,9]
@@ -152,8 +152,60 @@ def generate_board():
     print_matrix(matrix)
     return matrix
 
+def solve_matrix(matrix):
+    solution = matrix
+    for i in range(0,9):
+        for j in range(0,9):
+            if solution[i][j] == 0:
+                solution[i][j] = [1,2,3,4,5,6,7,8,9]
+            else:
+                solution[i][j] = [solution[i][j]]
+    count = 0
+    for i in range(0,9):
+        for j in range(0,9):
+            count = count + len(solution[i][j])
+    while count!=81:
+        for i in range(0,9):
+            for j in range(0,9):
+                if len(solution[i][j])>1:
+                    solution[i][j] = solve_one_cell(solution,i,j)
+        count = 0
+        for i in range(0,9):
+            for j in range(0,9):
+                count = count + len(solution[i][j])
+    for i in range(0,9):
+        for j in range(0,9):
+            solution[i][j] = int(solution[i][j][0])
+    return solution 
+                
 
-generate_board()
+def solve_one_cell(solution,a,b):
+    offset_a = a%3
+    offset_b = b%3
+    square = [1,2,3,4,5,6,7,8,9]
+    for i in range(0,3):
+        for j in range(0,3):
+            if len(solution[i+a-offset_a][j+b-offset_b])==1:
+                square.remove(int(solution[i+a-offset_a][j+b-offset_b][0]))
+    row_list = [1,2,3,4,5,6,7,8,9]
+    col_list = [1,2,3,4,5,6,7,8,9]  
+    for i in range(0,9):
+        if len(solution[a][i])==1 and solution[a][i]!=0 and i!=b:
+            row_list.remove(int(solution[a][i][0]))
+        if len(solution[i][b])==1 and solution[i][b] != 0 and i!=a:
+            col_list.remove(int(solution[i][b][0]))
+    temp_list = list(set.intersection(set(row_list),set(col_list)))
+    sol_list = list(set.intersection(set(temp_list),set(square)))
+    return sol_list
+
+
+    
+
+practice_matrix = [[3,0,4,0,0,2,5,0,1],[6,0,5,0,1,3,0,8,2],[7,1,2,0,8,0,3,0,6],[9,2,8,0,0,7,0,5,3],[4,0,7,0,3,5,0,1,9],[5,3,0,0,2,0,7,4,0],[1,0,0,3,5,0,8,2,4],[2,0,0,4,0,8,1,6,7],[0,0,6,2,0,1,9,0,5]]
+
+print_matrix(practice_matrix)
+solution = solve_matrix(practice_matrix)
+print_matrix(solution)
 
 
 
